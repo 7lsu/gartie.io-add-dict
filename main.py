@@ -1,5 +1,6 @@
 from selenium import webdriver
 from time import sleep
+import re
 
 def getNonRepeatList(data):
     new_data = []
@@ -9,52 +10,23 @@ def getNonRepeatList(data):
     return new_data
 
 def run():
-    with open('./easy.txt',encoding='utf-8') as f:
-        easy = []
-        for s in f.readlines():
-            easy.append(s.replace('\n',''))
-    easy = getNonRepeatList(easy)
-    with open('./medium.txt',encoding='utf-8') as f:
-        medium = []
-        for s in f.readlines():
-            medium.append(s.replace('\n',''))
-    medium = getNonRepeatList(medium)
-    with open('./hard.txt',encoding='utf-8') as f:
-        hard = []
-        for s in f.readlines():
-            hard.append(s.replace('\n',''))
-    hard = getNonRepeatList(hard)
-    if len(easy)==0 and len(medium)==0 and len(hard)==0:
-        print('没有词语可以导入哦。')
-        exit()
-    print("已导入简单词{}个，中等词{}个，困难词{}个。".format(len(easy),len(medium),len(hard)))
-
-    print("开始导入简单词")
-    sleep(3)
-
-    #导入简单
-    driver.find_element_by_xpath("//label[@for='easy']").click()
-    for s in easy:
-        input_word(s)
-    print("开始导入中等词")
-    sleep(3)
-
-    #导入中等
-    driver.find_element_by_xpath("//label[@for='medium']").click()
-    for s in medium:
-        input_word(s)
-    print("开始导入困难词")
-    sleep(3)
-
-    #导入困难
-    driver.find_element_by_xpath("//label[@for='hard']").click()
-    for s in hard:
-        input_word(s)
-    print("导入完成")
-    sleep(3)
+    difficulty = {'easy':[],'medium':[],'hard':[]}
+    for diff in difficulty:
+        with open('./{}.txt'.format(diff),encoding='utf-8') as f:
+            for s in f.readlines():
+                data = s.replace('\n','').replace('！','!').lower()
+                difficulty[diff].append(re.sub('[^\w|\u4e00-\u9fa5|\s|!|]+', '', data))
+        array = getNonRepeatList(difficulty[diff])
+        if (len(array) > 0):
+            print("[*] 导入{}词{}个。".format(diff,len(array)))
+            sleep(1)
+            driver.find_element_by_xpath("//label[@for='{}']".format(diff)).click()
+            for word in array:
+                input_word(word)
+    print("[*] 导入完成")
 
 def input_word(word):
-    print("导入{}".format(word))
+    print("[*] 导入{}".format(word))
     try:
         driver.find_element_by_xpath("//p[@class='legend error']")
     except:
@@ -86,15 +58,15 @@ def add_cookie():
             'Secure':False
         }
         driver.add_cookie(cookie_dict)
-    print("cookie添加完成。")
+    print("[*] cookie添加完成。")
     driver.refresh()
 
 if __name__ == "__main__":
-    print("正在打开FireFox.")
+    print("[*] 正在打开FireFoxWebDriver...")
     driver = webdriver.Firefox()
     driver.get("https://gartic.io/")
     while True:
-        r = input("请输入指令：")
+        r = input("[-] 请输入指令：")
         if r == 'run':
             run()
         if r == 'cookie':
